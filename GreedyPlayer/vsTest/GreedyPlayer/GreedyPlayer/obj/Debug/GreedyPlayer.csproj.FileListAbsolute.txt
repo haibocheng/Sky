@@ -1,0 +1,10 @@
+C:\Users\Administrator\Desktop\GreedyPlayer\GreedyPlayer\bin\GreedyPlayer.dll
+C:\Users\Administrator\Desktop\GreedyPlayer\GreedyPlayer\bin\GreedyPlayer.pdb
+C:\Users\Administrator\Desktop\GreedyPlayer\GreedyPlayer\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Administrator\Desktop\GreedyPlayer\GreedyPlayer\obj\Debug\GreedyPlayer.dll
+C:\Users\Administrator\Desktop\GreedyPlayer\GreedyPlayer\obj\Debug\GreedyPlayer.pdb
+C:\Users\Administrator\Desktop\greedyPlayer项目\GreedyPlayer\GreedyPlayer\bin\GreedyPlayer.dll
+C:\Users\Administrator\Desktop\greedyPlayer项目\GreedyPlayer\GreedyPlayer\bin\GreedyPlayer.pdb
+C:\Users\Administrator\Desktop\greedyPlayer项目\GreedyPlayer\GreedyPlayer\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Administrator\Desktop\greedyPlayer项目\GreedyPlayer\GreedyPlayer\obj\Debug\GreedyPlayer.dll
+C:\Users\Administrator\Desktop\greedyPlayer项目\GreedyPlayer\GreedyPlayer\obj\Debug\GreedyPlayer.pdb

@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   minWidth="955" minHeight="600" creationComplete="load()">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import Core.Controller;
+			import Core.PlayerOptions;
+			
+			import CustomEvent.FinishEvent;
+			import CustomEvent.LoadingEvent;
+			import CustomEvent.MetaDataEvent;
+			import CustomEvent.SeekCompleteEvent;
+			import CustomEvent.WaitEvent;
+			
+			import Util.BrowserInterface;
+			import Util.Help;
+			
+			import flashx.textLayout.factory.TruncationOptions;
+			
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.events.SliderEvent;
+			
+			import org.gif.player.GIFPlayer;
+			import org.osmf.events.LoaderEvent;
+			private var _controller:Controller;
+			private var _options:PlayerOptions=new PlayerOptions();
+			private var _totalTime:uint;
+			private var _isSeek:Boolean;
+			private var _positionTimes:Array;
+			private var _positionTimesIndex:uint=0;
+			private var _playSeekTime:uint;
+			private var _currentTime:Number=0;
+			private var _filesize:uint;
+			private var _width:uint;
+			private var _height:uint;
+			private var myContextMenu:ContextMenu;
+			private var player:GIFPlayer = new GIFPlayer();  
+			//因为silder的拖动会触发click事件
+			private var _isSliderClick:Boolean=true;
+			private function load():void
+			{
+				var options:PlayerOptions=new PlayerOptions();
+//				options.Height=480;
+//				options.Width=640;
+//				options.Url="http://abirdvideo.oss-cn-hangzhou.aliyuncs.com/151/0.dat";
+				var app:Application =FlexGlobals.topLevelApplication as Application;
+				options.Url=app.parameters.url;
+				if(app.parameters.autoplay!=null)
+				{
+					if(app.parameters.autoplay=="true")
+					{
+						options.Autoplay=true;
+					}
+					else
+					{
+						options.Autoplay=false;
+					}
+					
+				}
+				
+				if(app.parameters.isShowSlider!=null)
+				{
+				
+//					options.IsShowSlider=app.parameters.isShowSlider as Boolean;
+//					
+//					BrowserInterface.call("console.log",  options.IsShowSlider);
+					if(app.parameters.isShowSlider=="true")
+					{
+						options.IsShowSlider=true;
+						playProcess.visible=true;
+//						bufferRect.visible=true;
+					}
+					else
+					{
+						options.IsShowSlider=false;
+						playProcess.visible=false;
+//						bufferRect.visible=false;
+					}
+				}
+				options.Width=app.parameters.width;
+				options.Height=app.parameters.height;
+				videoUIComponent.width=options.Width;
+				videoUIComponent.height=options.Height-35;
+				groupControl.y=options.Height-35;
+				groupControl.width=options.Width;
+				playProcess.width=options.Width-130-50;
+				lbTotalTime.x=playProcess.width+playProcess.x+10;
+				videoMark.width=options.Width;
+				videoMarkBack.width=options.Width;
+				
+				videoMarkBack.height=options.Height-35;
+				videoMark.height=options.Height-35;
+				waitMark.width=options.Width;
+				waitMark.height=options.Height;
+//				options.Url="http://oss.aliyuncs.com/testmyaudios/100/0.dat";
+				options.UiComponent=videoUIComponent;
+				_options=options;
+				
+				_controller=new Controller(options);
+				
+				_controller.addEventListener(_controller.OnComplete,completeHandle);
+				_controller.addEventListener(_controller.OnProgress,onProgressHandler);
+				_controller.addEventListener(_controller.OnSeek,seekHandle);
+				_controller.addEventListener(_controller.OnFinish,finishHandler);
+				_controller.addEventListener(_controller.OnWait,waitHandler);
+				//生成gif等待动画
+				var request:URLRequest = new URLRequest("/Scripts/greedyPlayer/img/wait.gif");  
+				
+				player.load(request);  
+				waitGif.addChild(player); 
+				//import flash.system.Security;解决注册函数跨域
+				Security.allowDomain("*");
+				Security.allowInsecureDomain("*");
+				//注册js调用函数
+				BrowserInterface.callback("play",start);
+				BrowserInterface.callback("pause",pause);
+				BrowserInterface.callback("resume",resume);
+				BrowserInterface.callback("seek",seek);
+				BrowserInterface.callback("getCurrentTime",getCurrentTime);
+				BrowserInterface.callback("getDuration",getDuration);
+				
+			}
+			private function finishHandler(e:FinishEvent):void
+			{
+				BrowserInterface.call("onFinish");
+				pause();
+				btnRestart.visible=true;
+				btnRestart.includeInLayout=true;
+				btnPause.visible=false;
+				btnPause.includeInLayout=false;
+				_isSeek=true;
+				
+				_currentTime=0;
+				_controller.seek(1);
+			}
+			private function waitHandler(e:WaitEvent):void
+			{
+				if(e.State)
+				{
+//					BrowserInterface.call("console.log","真");
+					waitMark.visible=false;
+					waitMark.includeInLayout=false;
+					playProcess.enabled=true;
+				}
+				else
+				{
+//					BrowserInterface.call("console.log","假");
+					waitMark.visible=true;
+					waitMark.includeInLayout=true;
+					playProcess.enabled=false;
+				}
+				
+			}
+			private function completeHandle(e:MetaDataEvent):void
+			{
+				_totalTime=e.Info.duration;
+				_filesize=e.Info.filesize;
+				watermark.height=e.Info.height;
+				playProcess.maximum=_totalTime;
+				_positionTimes=e.Info.positionTimes;
+				lbTotalTime.text=Help.timeFormat(_totalTime);
+				
+				if(_options.Autoplay)
+				{
+					start();
+				}
+				//调用js函数onReady,以此来验证播放器准备完毕，可以正常播放
+				BrowserInterface.call("onReady","");
+				//添加右键菜单
+				myContextMenu = new ContextMenu();
+				addCustomMenuItems();
+				watermark.contextMenu=myContextMenu;
+				this.contextMenu=myContextMenu;
+			}
+			//播放器操作
+			private  function start():void
+			{
+				this.addEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+				videoMark.visible=false;
+				videoMark.z=-1;
+				videoMarkBack.z=-2;
+				_controller.play(true,_currentTime);
+				
+				btnStart.visible=false;
+				btnStart.includeInLayout=false;
+				btnPause.visible= true;
+				btnPause.includeInLayout=true;
+			}
+			private  function pause():void
+			{
+				btnResume.visible=true;
+				btnResume.includeInLayout=true;
+				btnPause.visible=false;
+				btnPause.includeInLayout=false;
+				_controller.pause();
+			}
+			private  function resume():void
+			{
+				btnResume.visible=false;
+				btnResume.includeInLayout=false;
+				btnPause.visible= true;
+				btnPause.includeInLayout=true;
+				_controller.resume();
+			}
+			private function restart():void
+			{
+				resume();
+				btnRestart.visible=false;
+				btnRestart.includeInLayout=false;
+				btnPause.visible=true;
+				btnPause.includeInLayout=true;
+			}
+			private  function seek(time:Number):void
+			{
+				_isSeek=true;
+				_currentTime=time;
+				_controller.seek(_currentTime);
+			}
+			private function getCurrentTime():Number
+			{
+				if(_isSeek){
+					return _controller.getCurrentTime()+_playSeekTime;
+				}
+				else{
+					return _controller.getCurrentTime();
+				}
+				
+			}
+			private function getDuration():Number
+			{
+				return _totalTime;
+			}
+			//进度条改变 
+			private function playProcessOnchange(event:SliderEvent):void
+			{ 
+				this.removeEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+				_isSeek=true;
+//				_controller.stop();
+//				_controller.initNs();
+//				
+				if(playProcess.value!=0)
+				{
+					_currentTime=playProcess.value;
+				}
+				else
+				{
+					_currentTime=1;
+				}
+				//				_controller.play(true,_currentTime);
+				_controller.seek(_currentTime);
+				
+			}
+			private function playProcessClick():void
+			{
+//				_controller.pause(); 
+				if(_isSliderClick)
+				{
+					this.removeEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+				}
+				else
+				{
+					_isSliderClick=true;
+				}
+			}
+			//进度条鼠标按下 
+			private function thumbPress():void
+			{ 
+//				_controller.pause(); 
+				_isSliderClick=false;
+				this.removeEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+			} 
+			//进度条鼠标弹起,指拖动时滑块时鼠标弹起 
+			private function thumbRelease():void
+			{ 
+				
+				this.addEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+//				_controller.resume();
+			} 
+			//进度条
+			private function EnterFrameHandler(e:Event):void{
+//				_controller.play(_controller.getCurrentTime());
+				//更新时间				
+//				if(_isSeek)
+//				{
+//					lbCurrentTime.text=Help.timeFormat(_controller.getCurrentTime()+_playSeekTime);
+//					playProcess.value=_controller.getCurrentTime()+_playSeekTime;
+//					if(_controller.getCurrentTime()+_playSeekTime==_positionTimes[_positionTimesIndex]-_controller.LeftTime)
+//					{
+//						_positionTimesIndex++;
+//						_controller.play(true,_controller.getCurrentTime()+_playSeekTime);
+//					}
+//				}
+//				else
+//				{
+//					lbCurrentTime.text=Help.timeFormat(_controller.getCurrentTime());
+//					playProcess.value=_controller.getCurrentTime();
+//				}
+//				if(_totalTime>_controller.LeftTime)
+//				{
+//					if(_controller.getCurrentTime()>=_positionTimes[_positionTimesIndex]-_controller.LeftTime)
+//					{
+//						_positionTimesIndex++;
+//						_controller.play(true,_controller.getCurrentTime());
+//					}
+//				}
+				if(_isSeek)
+				{
+					lbCurrentTime.text=Help.timeFormat(_controller.getCurrentTime()+_playSeekTime);
+					playProcess.value=_controller.getCurrentTime()+_playSeekTime;
+					if(_totalTime>_controller.LeftTime&&_controller.getCurrentTime()+_playSeekTime>=_positionTimes[_positionTimesIndex]-_controller.LeftTime)
+					{
+						_positionTimesIndex++;
+						_controller.play(true,_controller.getCurrentTime()+_playSeekTime);
+					}
+				}
+				else
+				{
+					lbCurrentTime.text=Help.timeFormat(_controller.getCurrentTime());
+					playProcess.value=_controller.getCurrentTime();
+					if(_totalTime>_controller.LeftTime&&_controller.getCurrentTime()>=_positionTimes[_positionTimesIndex]-_controller.LeftTime)
+					{
+						_positionTimesIndex++;
+						_controller.play(true,_controller.getCurrentTime());
+					}
+				}
+			}
+			//slider格式化 
+			private function dataTipFormat(data:Number):String
+			{ 
+				return Help.timeFormat(data); 
+			}
+			//urlLoader的进度
+			private function onProgressHandler(event:LoadingEvent):void
+			{
+				bufferRect.width =event.LoaderData /_filesize*(playProcess.width-5);
+			}
+			private function seekHandle(event:SeekCompleteEvent):void
+			{
+				_playSeekTime=event.Time;
+				_currentTime=event.Time;
+				_positionTimesIndex=event.FileIndex;
+				this.addEventListener(Event.ENTER_FRAME,EnterFrameHandler);
+			}
+			private function addCustomMenuItems():void {
+				var copyrightMenuItem:ContextMenuItem = new ContextMenuItem("Copyright By 2013 GREEDYINT",false,false);
+				var item:ContextMenuItem = new ContextMenuItem("关于我们");
+				myContextMenu.customItems.push(item);
+				myContextMenu.customItems.push(copyrightMenuItem);
+				myContextMenu.hideBuiltInItems();
+				item.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, about);
+//				myContextMenu.addEventListener(ContextMenuEvent.MENU_SELECT,menuSelect);
+			}
+			
+			private function about(event:ContextMenuEvent):void 
+			{
+//				trace("a");
+				var tagetURL:URLRequest = new URLRequest("http://www.1gai.cn/"); 
+				navigateToURL(tagetURL); 
+			}
+//			private function menuSelect(event:ContextMenuEvent):void 
+//			{
+////				var tagetURL:URLRequest = new URLRequest("http://www.1gai.cn/"); 
+////				navigateToURL(tagetURL); 
+//				trace(event.currentTarget);
+//			}
+		]]>
+	</fx:Script>
+	<s:BorderContainer id="videoMarkBack"  width="800" height="565" >
+		<s:Rect x="0" y="0" height="100%" width="100%">
+			<s:fill>
+				<s:SolidColor color="#000000"/>
+			</s:fill>
+		</s:Rect>
+	</s:BorderContainer>
+	<s:Group id="videoGroup">
+		<s:BorderContainer id="videoMark"  width="800" height="565" z="1" >
+			<s:Rect x="0" y="0" height="100%" width="100%">
+				<s:fill>
+					<s:SolidColor color="#000000"/>
+				</s:fill>
+			</s:Rect>
+		</s:BorderContainer>
+		<mx:UIComponent id="videoUIComponent" width="800" height="600" verticalCenter="0" horizontalCenter="0"/>	
+		
+	</s:Group>
+	
+	
+	
+	<s:BorderContainer id="watermark"   width="666"  backgroundAlpha="0"
+					     borderAlpha="0.0">     
+	</s:BorderContainer>
+	<s:BorderContainer id="watermarklog" x="10" y="10"  width="149" height="50" backgroundAlpha="0.3"
+					   backgroundImage="@Embed('img/logo.png')" borderAlpha="0.0">     
+		
+	</s:BorderContainer>
+	<s:BorderContainer visible="false" id="waitMark" width="149" height="50" backgroundAlpha="0" borderAlpha="0.0">  
+		<!--<s:Image id="waitGif" verticalCenter="0" horizontalCenter="0"/>-->
+		<mx:Image id="waitGif" width="32" height="32"  verticalCenter="0" horizontalCenter="0"/> 
+	</s:BorderContainer>
+	<s:Group id="groupControl" y="565" width="800" height="35">
+		<s:Rect x="0" y="0" height="100%" width="100%">
+			<s:fill>
+				<s:SolidColor color="#333333"/>
+			</s:fill>
+		</s:Rect>
+		<s:Image id="btnStart" source="@Embed('img/playButtonMg.png')" visible="true" x="10" y="3"   click="start()" buttonMode="true" includeInLayout="true" />
+		<s:Image id="btnPause" source="@Embed('img/pauseButtonMg.png')" visible="false" x="10" y="3"  click="pause()" buttonMode="true" includeInLayout="false"/>
+		<s:Image id="btnResume" source="@Embed('img/playButtonMg.png')" visible="false" x="10" y="3"  click="resume()" buttonMode="true" includeInLayout="false"/>
+		<s:Image id="btnRestart" source="@Embed('img/playButtonMg.png')" visible="false" x="10" y="3"  click="restart()" buttonMode="true" includeInLayout="false"/>
+		<!-- <s:Image id="btnStop" source="@Embed('img/stopButtonMg.png')" x="50" y="14" buttonMode="true"  click="stop(event)"/>-->
+		
+		
+		<mx:HSlider x="110" id="playProcess" y="10" width="615" height="9" alpha="0.5"  visible="false"
+					change="playProcessOnchange(event)" dataTipFormatFunction="dataTipFormat" click="playProcessClick()"
+					minimum="0" showTrackHighlight="true" thumbPress="thumbPress();"  thumbRelease="thumbRelease();"/> 
+		<s:BorderContainer visible="false" includeInLayout="false" x="110" width="0" y="18"   height="4" id="bufferRect" buttonMode="true" borderColor="#70b2ee" backgroundColor="#70b2ee">
+		</s:BorderContainer>
+		
+		<s:Label x="50" y="14" width="65" id="lbCurrentTime" text="00:00:00" color="#ffffff"/>
+		<s:Label x="735" y="14" width="65" id="lbTotalTime" text="00:00:00" color="#ffffff"/>
+	</s:Group>
+	
+</s:Application>

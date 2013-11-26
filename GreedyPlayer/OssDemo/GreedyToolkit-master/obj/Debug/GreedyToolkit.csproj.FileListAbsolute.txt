@@ -1,0 +1,15 @@
+d:\我的文档\flex\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.dll
+d:\我的文档\flex\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.pdb
+d:\我的文档\flex\OssDemo\GreedyToolkit-master\obj\Debug\ResolveAssemblyReference.cache
+d:\我的文档\flex\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.dll
+d:\我的文档\flex\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.pdb
+C:\Users\Administrator\Desktop\近期项目\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.dll
+C:\Users\Administrator\Desktop\近期项目\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.pdb
+C:\Users\Administrator\Desktop\近期项目\OssDemo\GreedyToolkit-master\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Administrator\Desktop\近期项目\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.dll
+C:\Users\Administrator\Desktop\近期项目\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.pdb
+C:\Users\Administrator\Desktop\greedyPlayer项目\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.dll
+C:\Users\Administrator\Desktop\greedyPlayer项目\OssDemo\GreedyToolkit-master\bin\Debug\GreedyToolkit.pdb
+C:\Users\Administrator\Desktop\greedyPlayer项目\OssDemo\GreedyToolkit-master\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\Administrator\Desktop\greedyPlayer项目\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.dll
+C:\Users\Administrator\Desktop\greedyPlayer项目\OssDemo\GreedyToolkit-master\obj\Debug\GreedyToolkit.pdb

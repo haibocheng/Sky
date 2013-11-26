@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fxpProperties abbreviated="false" authoringTool="Flex Builder" compiles="true" parentProject="1b18aefa-b016-468f-99df-c2879303df1d" projectUUID="1b18aefa-b016-468f-99df-c2879303df1d" pureCatalystProject="false" sdkVersion="4.6.0" uuid="99aa2a66-c1a1-4031-b61a-e0d7199fdc06" version="15">
+  <projects/>
+  <src/>
+  <swc>
+    <linked location="sdkPlaceHolder" path="sdkPlaceHolder" position="0" uuid="99aa2a66-c1a1-4031-b61a-e0d7199fdc06"/>
+    <linked location="F:/Users/abird/Adobe Flash Builder 4.6/GIntPlayer/libs" path="/libs" position="1" uuid="33e59c5a-dbc5-40c9-8e14-ef88a2df7b92"/>
+  </swc>
+  <misc>
+    <linked location="C:/Users/Administrator/Desktop/greedyPlayer项目/发布版" path="/bin-release" position="0" uuid="99aa2a66-c1a1-4031-b61a-e0d7199fdc06"/>
+  </misc>
+  <theme/>
+  <mxmlFormattingPrefs groupAttributesByState="true" maxLineWidth="100" mxmlAlignAttributes="true" mxmlAttributeOrder="id,userLabel,includeIn,excludeFrom,visible,x,y,z,left,right,top,bottom,width,height,minWidth,minHeight,maxWidth,maxHeight,label" mxmlKeepAttributeValuesOrganized="true"/>
+</fxpProperties>
